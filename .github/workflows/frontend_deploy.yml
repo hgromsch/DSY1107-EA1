@@ -35,15 +35,16 @@ jobs:
           COGNITO_DOMAIN: ${{ vars.COGNITO_DOMAIN }}
           CLIENT_ID: ${{ vars.COGNITO_CLIENT_ID }}
           REDIRECT_URI: ${{ vars.REDIRECT_URI }}
+        shell: bash
         run: |
-          cat > frontend/.env.production <<EOF
-          VITE_AUTH0_DOMAIN=${COGNITO_DOMAIN}
-          VITE_AUTH0_CLIENT_ID=${CLIENT_ID}
-          VITE_AUTH0_CALLBACK_URL=${REDIRECT_URI}
-          VITE_AUTH0_LOGOUT_URL=${REDIRECT_URI%/}
-          VITE_COGNITO_TOKEN_ENDPOINT=${COGNITO_DOMAIN%/}/oauth2/token
-          VITE_COGNITO_JWKS_URI=https://cognito-idp.${REGION}.amazonaws.com/.well-known/jwks.json
-          EOF
+          {
+            echo "VITE_AUTH0_DOMAIN=${COGNITO_DOMAIN}"
+            echo "VITE_AUTH0_CLIENT_ID=${CLIENT_ID}"
+            echo "VITE_AUTH0_CALLBACK_URL=${REDIRECT_URI}"
+            echo "VITE_AUTH0_LOGOUT_URL=${REDIRECT_URI%/}"
+            echo "VITE_COGNITO_TOKEN_ENDPOINT=${COGNITO_DOMAIN%/}/oauth2/token"
+            echo "VITE_COGNITO_JWKS_URI=https://cognito-idp.${REGION}.amazonaws.com/.well-known/jwks.json"
+          } > frontend/.env.production
 
       - name: Instalar dependencias
         working-directory: frontend
@@ -68,6 +69,7 @@ jobs:
           APP_ID: ${{ vars.AMPLIFY_APP_ID }}
           RAMA: ${{ vars.AMPLIFY_BRANCH || 'main' }}
           DESTINO: ${{ vars.REDIRECT_URI }}
+        shell: bash
         run: |
           [ -n "$APP_ID" ] || { echo "::error::Falta la variable AMPLIFY_APP_ID. Ejecuta ./sincronizar-github.sh"; exit 1; }
           aws amplify start-job --app-id "$APP_ID" --branch-name "$RAMA" --job-type RELEASE >/dev/null
